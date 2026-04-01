@@ -15,7 +15,7 @@ const notFound_1 = __importDefault(require("./app/middlewares/notFound"));
 const app = (0, express_1.default)();
 // Middlewares
 app.use((0, cors_1.default)({
-    origin: config_1.default.allowed_origins,
+    origin: config_1.default.allowed_origins || 'https://inventory-order-manegment.vercel.app',
     credentials: true,
 }));
 app.use((0, cookie_parser_1.default)());
