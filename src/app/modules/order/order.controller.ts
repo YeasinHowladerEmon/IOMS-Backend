@@ -6,7 +6,14 @@ import { OrderService } from './order.service';
 import pick from '../../../shared/pick';
 
 const createOrder = catchAsync(async (req: Request, res: Response) => {
-  const result = await OrderService.createOrder(req.body);
+  const user = (req as any).user;
+  const userId = user?.id;
+
+
+  const result = await OrderService.createOrder({
+    ...req.body,
+    userId: Number(userId),
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,

@@ -1,8 +1,19 @@
-import { Prisma, Product, ProductStatus } from '@prisma/client';
+import { Prisma, Product, ProductStatus, RestockPriority } from '@prisma/client';
+import httpStatus from 'http-status';
 import { paginationHelpers } from '../../../helpers/paginationHelper';
 import prisma from '../../../shared/prisma';
+import ApiError from '../../errors/ApiError';
 
 const createProduct = async (data: Product): Promise<Product> => {
+  // Check if product already exists
+  const isProductExist = await prisma.product.findFirst({
+    where: { name: data.name },
+  });
+
+  if (isProductExist) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Product already exists');
+  }
+
   // Handle status based on stock
   if (data.stockQuantity <= 0) {
     data.status = ProductStatus.OUT_OF_STOCK;
@@ -10,12 +21,48 @@ const createProduct = async (data: Product): Promise<Product> => {
     data.status = ProductStatus.ACTIVE;
   }
 
-  const result = await prisma.product.create({
-    data,
-    include: {
-      category: true,
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const product = await tx.product.create({
+      data,
+      include: {
+        category: true,
+      },
+    });
+
+    // Handle initial restock queue if created with low stock
+    if (product.stockQuantity < product.minStockThreshold) {
+      let priority: RestockPriority = 'LOW';
+      if (product.stockQuantity === 0) {
+        priority = 'HIGH';
+      } else if (product.stockQuantity < product.minStockThreshold / 2) {
+        priority = 'MEDIUM';
+      }
+
+      await tx.restockQueue.upsert({
+        where: { productId: product.id },
+        update: { priority },
+        create: {
+          productId: product.id,
+          priority,
+        },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          message: `Product "${product.name}" added to Restock Queue (${priority} Priority)`,
+        },
+      });
+    }
+
+    await tx.activityLog.create({
+      data: {
+        message: `Product "${product.name}" added to catalog`,
+      },
+    });
+
+    return product;
   });
+
   return result;
 };
 
@@ -104,13 +151,56 @@ const updateProduct = async (
     }
   }
 
-  const result = await prisma.product.update({
-    where: { id },
-    data: payload,
-    include: {
-      category: true,
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedProduct = await tx.product.update({
+      where: { id },
+      data: payload,
+      include: {
+        category: true,
+      },
+    });
+
+    if (payload.stockQuantity !== undefined) {
+      // Manage restock queue based on new stock level
+      if (updatedProduct.stockQuantity < updatedProduct.minStockThreshold) {
+        let priority: RestockPriority = 'LOW';
+        if (updatedProduct.stockQuantity === 0) {
+          priority = 'HIGH';
+        } else if (updatedProduct.stockQuantity < updatedProduct.minStockThreshold / 2) {
+          priority = 'MEDIUM';
+        }
+
+        await tx.restockQueue.upsert({
+          where: { productId: updatedProduct.id },
+          update: { priority },
+          create: {
+            productId: updatedProduct.id,
+            priority,
+          },
+        });
+      } else {
+        // Remove from queue if stock is now >= threshold
+        await tx.restockQueue.deleteMany({
+          where: { productId: updatedProduct.id },
+        });
+      }
+
+      await tx.activityLog.create({
+        data: {
+          message: `Stock updated for "${updatedProduct.name}" (${payload.stockQuantity})`,
+        },
+      });
+    } else {
+      await tx.activityLog.create({
+        data: {
+          message: `Product "${updatedProduct.name}" updated`,
+        },
+      });
+    }
+
+    return updatedProduct;
   });
+
   return result;
 };
 
@@ -118,6 +208,15 @@ const deleteProduct = async (id: string): Promise<Product | null> => {
   const result = await prisma.product.delete({
     where: { id },
   });
+
+  if (result) {
+    await prisma.activityLog.create({
+      data: {
+        message: `Product "${result.name}" removed from catalog`,
+      },
+    });
+  }
+
   return result;
 };
 

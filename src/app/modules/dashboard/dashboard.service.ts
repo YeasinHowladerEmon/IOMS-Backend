@@ -84,9 +84,19 @@ const getDashboardData = async () => {
       },
     });
 
+    const dayOrders = await prisma.order.count({
+      where: {
+        createdAt: {
+          gte: dayStart,
+          lte: dayEnd,
+        },
+      },
+    });
+
     revenueAnalytics.push({
       date: format(day, 'yyyy-MM-dd'),
       revenue: dayRevenue._sum.totalPrice || 0,
+      orderCount: dayOrders,
     });
   }
 
@@ -99,11 +109,26 @@ const getDashboardData = async () => {
   });
 
   // 7. Product Summary
-  const productSummary = allProducts.map((p) => ({
-    name: p.name,
-    stockQuantity: p.stockQuantity,
-    status: p.stockQuantity < p.minStockThreshold ? 'Low Stock' : 'OK',
-  }));
+  const productSummary = allProducts.map((p) => {
+    let status = '';
+    if (p.stockQuantity <= 5) {
+      status = 'Very Low';
+    } else if (p.stockQuantity <= 10) {
+      status = 'Low Stock';
+    } else if (p.stockQuantity <= 18) {
+      status = 'OK';
+    } else if (p.stockQuantity <= 30) {
+      status = 'Very Good';
+    } else {
+      status = 'Excellent';
+    }
+
+    return {
+      name: p.name,
+      stockQuantity: p.stockQuantity,
+      status,
+    };
+  });
 
   return {
     insights: {

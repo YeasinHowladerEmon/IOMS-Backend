@@ -7,20 +7,20 @@ const router = express.Router();
 
 router.post(
   '/',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.USER),
+  auth(UserRole.ADMIN, UserRole.MANAGER),
   OrderController.createOrder
 );
 
 router.get(
   '/',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER, UserRole.DEMO_USER),
   OrderController.getAllOrders
 );
 
-router.get('/:id', auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.USER), OrderController.getOrderById);
+router.get('/:id', auth(UserRole.ADMIN, UserRole.MANAGER, UserRole.DEMO_USER), OrderController.getOrderById);
 
-router.patch('/:id/status', auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER), OrderController.updateOrderStatus);
+router.patch('/:id/status', auth(UserRole.ADMIN, UserRole.MANAGER), OrderController.updateOrderStatus);
 
-router.patch('/:id/cancel', auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.USER), OrderController.cancelOrder);
+router.patch('/:id/cancel', auth(UserRole.ADMIN, UserRole.MANAGER), OrderController.cancelOrder);
 
 export const OrderRoutes = router;

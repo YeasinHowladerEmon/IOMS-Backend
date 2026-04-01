@@ -7,19 +7,19 @@ const router = express.Router();
 
 router.get(
   '/',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER, UserRole.DEMO_USER),
   RestockController.getRestockQueue
 );
 
 router.patch(
   '/:productId/restock',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER),
   RestockController.restockProduct
 );
 
 router.delete(
   '/:productId',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER),
   RestockController.removeFromQueue
 );
 

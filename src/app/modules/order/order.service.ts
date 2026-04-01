@@ -9,7 +9,12 @@ import { ActivityLogService } from '../activity-log/activity-log.service';
 const createOrder = async (data: IOrderRequest): Promise<Order> => {
   const { userId, customerName, items } = data;
 
-  // 1. Prevent duplicate product entries in the same order
+  // 1. Prevent empty orders
+  if (!items || items.length === 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Order must contain at least one product.');
+  }
+
+  // 2. Prevent duplicate product entries in the same order
   const productIds = items.map((item) => item.productId);
   const uniqueProductIds = new Set(productIds);
   if (productIds.length !== uniqueProductIds.size) {
@@ -48,7 +53,7 @@ const createOrder = async (data: IOrderRequest): Promise<Order> => {
       if (product.stockQuantity < item.quantity) {
         throw new ApiError(
           httpStatus.BAD_REQUEST,
-          `Only ${product.stockQuantity} items available in stock for product: ${product.name}`
+          `Only ${product.stockQuantity} items available in stock`
         );
       }
 
@@ -87,6 +92,12 @@ const createOrder = async (data: IOrderRequest): Promise<Order> => {
           create: {
             productId: item.productId,
             priority,
+          },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            message: `Product "${product.name}" added to Restock Queue (${priority} Priority)`,
           },
         });
       }
@@ -162,6 +173,20 @@ const updateOrderStatus = async (
         orderItems: true,
       },
     });
+
+    if (status === OrderStatus.CANCELLED) {
+      for (const item of updatedOrder.orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stockQuantity: {
+              increment: item.quantity,
+            },
+            status: 'ACTIVE',
+          },
+        });
+      }
+    }
 
     await tx.activityLog.create({
       data: {

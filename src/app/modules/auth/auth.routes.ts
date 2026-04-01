@@ -9,13 +9,7 @@ router.post('/login', AuthController.loginUser);
 router.post('/register', AuthController.registerUser);
 router.get(
   '/me',
-  auth(
-    UserRole.SUPER_ADMIN,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.USER,
-    UserRole.DEMO_USER
-  ),
+  auth(UserRole.ADMIN, UserRole.MANAGER, UserRole.DEMO_USER),
   AuthController.getMe
 );
 

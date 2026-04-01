@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post(
   '/',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER),
   CategoryController.createCategory
 );
 
@@ -16,13 +16,13 @@ router.get('/:id', CategoryController.getSingleCategory);
 
 router.patch(
   '/:id',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER),
   CategoryController.updateCategory
 );
 
 router.delete(
   '/:id',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  auth(UserRole.ADMIN, UserRole.MANAGER),
   CategoryController.deleteCategory
 );
 

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get(
   '/',
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER),
+  auth(UserRole.ADMIN, UserRole.MANAGER, UserRole.DEMO_USER),
   DashboardController.getDashboardData
 );
 

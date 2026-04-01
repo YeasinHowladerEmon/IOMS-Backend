@@ -23,10 +23,10 @@ const loginUser = async (payload: ILoginUser): Promise<ILoginUserResponse> => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Password does not match');
   }
 
-  const { email: userEmail, role } = isUserExist;
+  const { id: userId, email: userEmail, role } = isUserExist;
 
   const accessToken = jwtHelpers.createToken(
-    { userEmail, role },
+    { id: userId, userEmail, role },
     config.jwt.secret as Secret,
     config.jwt.expires_in as string
   );
