@@ -16,6 +16,7 @@ const loginUser = (0, catchAsync_1.default)(async (req, res) => {
     const cookieOptions = {
         secure: config_1.default.env === 'production',
         httpOnly: true,
+        sameSite: (config_1.default.env === 'production' ? 'none' : 'lax'),
         maxAge: 24 * 60 * 60 * 1000,
     };
     res.cookie('accessToken', accessToken, cookieOptions);
