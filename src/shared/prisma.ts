@@ -1,0 +1,25 @@
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+});
+
+const adapter = new PrismaPg(pool);
+
+// PrismaClient singleton with error logging for production stability
+const prisma = new PrismaClient({
+    adapter,
+    log: ["error"]
+});
+
+export default prisma;
+
