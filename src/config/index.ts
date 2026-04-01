@@ -7,6 +7,13 @@ export default {
   env: process.env.NODE_ENV,
   port: process.env.PORT || 5000,
   database_url: process.env.DATABASE_URL,
+  allowed_origins: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://inventory-order-manegment.vercel.app',
+      ],
   jwt: {
     secret: process.env.JWT_SECRET,
     expires_in: process.env.JWT_EXPIRES_IN,
