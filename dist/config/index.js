@@ -15,7 +15,7 @@ exports.default = {
         : [
             'http://localhost:3000',
             'http://localhost:5173',
-            'https://inventory-order-manegment.vercel.app',
+            // 'https://inventory-order-manegment.vercel.app',
         ],
     jwt: {
         secret: process.env.JWT_SECRET,

@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/login', AuthController.loginUser);
 router.post('/register', AuthController.registerUser);
+router.post('/logout', AuthController.logoutUser);
 router.get(
   '/me',
   auth(UserRole.ADMIN, UserRole.MANAGER, UserRole.DEMO_USER),

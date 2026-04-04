@@ -11,5 +11,6 @@ const client_1 = require("@prisma/client");
 const router = express_1.default.Router();
 router.post('/login', auth_controller_1.AuthController.loginUser);
 router.post('/register', auth_controller_1.AuthController.registerUser);
+router.post('/logout', auth_controller_1.AuthController.logoutUser);
 router.get('/me', (0, auth_1.default)(client_1.UserRole.ADMIN, client_1.UserRole.MANAGER, client_1.UserRole.DEMO_USER), auth_controller_1.AuthController.getMe);
 exports.AuthRoutes = router;

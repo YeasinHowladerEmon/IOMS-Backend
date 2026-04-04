@@ -8,14 +8,13 @@ const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
-const config_1 = __importDefault(require("./config"));
 const routes_1 = __importDefault(require("./app/routes"));
 const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalErrorHandler"));
 const notFound_1 = __importDefault(require("./app/middlewares/notFound"));
 const app = (0, express_1.default)();
 // Middlewares
 app.use((0, cors_1.default)({
-    origin: config_1.default.allowed_origins || 'https://inventory-order-manegment.vercel.app',
+    origin: "http://localhost:3000",
     credentials: true,
 }));
 app.use((0, cookie_parser_1.default)());

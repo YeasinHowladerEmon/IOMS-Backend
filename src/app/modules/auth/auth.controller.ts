@@ -60,8 +60,24 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const logoutUser = catchAsync(async (req: Request, res: Response) => {
+  res.clearCookie('accessToken', {
+    secure: config.env === 'production',
+    httpOnly: true,
+    sameSite: (config.env === 'production' ? 'none' : 'lax') as 'none' | 'lax',
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User logged out successfully',
+    data: null,
+  });
+});
+
 export const AuthController = {
   loginUser,
   registerUser,
   getMe,
+  logoutUser,
 };

@@ -53,8 +53,22 @@ const getMe = (0, catchAsync_1.default)(async (req, res) => {
         data: result || null,
     });
 });
+const logoutUser = (0, catchAsync_1.default)(async (req, res) => {
+    res.clearCookie('accessToken', {
+        secure: config_1.default.env === 'production',
+        httpOnly: true,
+        sameSite: (config_1.default.env === 'production' ? 'none' : 'lax'),
+    });
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'User logged out successfully',
+        data: null,
+    });
+});
 exports.AuthController = {
     loginUser,
     registerUser,
     getMe,
+    logoutUser,
 };

@@ -9,6 +9,7 @@ const http_status_1 = __importDefault(require("http-status"));
 const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
+const date_fns_1 = require("date-fns");
 const createOrder = async (data) => {
     const { userId, customerName, items } = data;
     // 1. Prevent empty orders
@@ -244,10 +245,10 @@ const getAllOrders = async (filters, paginationOptions) => {
     if (startDate || endDate) {
         const dateFilter = {};
         if (startDate) {
-            dateFilter.gte = new Date(startDate);
+            dateFilter.gte = (0, date_fns_1.startOfDay)(new Date(startDate));
         }
         if (endDate) {
-            dateFilter.lte = new Date(endDate);
+            dateFilter.lte = (0, date_fns_1.endOfDay)(new Date(endDate));
         }
         andConditions.push({
             createdAt: dateFilter,
@@ -256,11 +257,21 @@ const getAllOrders = async (filters, paginationOptions) => {
     // Filter logic
     if (Object.keys(filterData).length > 0) {
         andConditions.push({
-            AND: Object.keys(filterData).map((key) => ({
-                [key]: {
-                    equals: filterData[key],
-                },
-            })),
+            AND: Object.keys(filterData).map((key) => {
+                let value = filterData[key];
+                // Convert numeric fields if necessary
+                if (key === 'userId' || key === 'id') {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                        value = numValue;
+                    }
+                }
+                return {
+                    [key]: {
+                        equals: value,
+                    },
+                };
+            }),
         });
     }
     const whereConditions = andConditions.length > 0 ? { AND: andConditions } : {};

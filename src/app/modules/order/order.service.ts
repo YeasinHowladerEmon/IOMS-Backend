@@ -5,6 +5,7 @@ import { paginationHelpers } from '../../../helpers/paginationHelper';
 import prisma from '../../../shared/prisma';
 import { IOrderRequest } from './order.interface';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { endOfDay, startOfDay } from 'date-fns';
 
 const createOrder = async (data: IOrderRequest): Promise<Order> => {
   const { userId, customerName, items } = data;
@@ -296,10 +297,10 @@ const getAllOrders = async (
   if (startDate || endDate) {
     const dateFilter: any = {};
     if (startDate) {
-      dateFilter.gte = new Date(startDate as string);
+      dateFilter.gte = startOfDay(new Date(startDate as string));
     }
     if (endDate) {
-      dateFilter.lte = new Date(endDate as string);
+      dateFilter.lte = endOfDay(new Date(endDate as string));
     }
     andConditions.push({
       createdAt: dateFilter,
@@ -309,11 +310,21 @@ const getAllOrders = async (
   // Filter logic
   if (Object.keys(filterData).length > 0) {
     andConditions.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
+      AND: Object.keys(filterData).map((key) => {
+        let value = (filterData as any)[key];
+        // Convert numeric fields if necessary
+        if (key === 'userId' || key === 'id') {
+          const numValue = Number(value);
+          if (!isNaN(numValue)) {
+            value = numValue;
+          }
+        }
+        return {
+          [key]: {
+            equals: value,
+          },
+        };
+      }),
     });
   }
 
