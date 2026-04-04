@@ -13,7 +13,7 @@ const app: Application = express();
 // Middlewares
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: config.allowed_origins || 'https://inventory-order-manegment.vercel.app',
     credentials: true,
   })
 );
